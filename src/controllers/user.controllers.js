@@ -1,5 +1,6 @@
 const User = require('../models/user.models')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 const fetchUsers = async (req, res) => {
   try {
@@ -69,9 +70,12 @@ const signinUser = async (req, res) => {
       })
     } 
 
+    const token = jwt.sign({ a: 5 }, 'ILoveNodejs', { expiresIn: 30*60*1000 })
+
     res.json({
       status: 'SUCCESS',
-      message: 'User logged in successfully!'
+      message: 'User logged in successfully!',
+      token
     })
   } catch (error) {
     res.status(500).json({
