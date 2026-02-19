@@ -21,14 +21,15 @@ const fetchUsers = async (req, res) => {
 
 const signupUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body
+    const { name, email, password, role } = req.body
 
     const encryptedPassword = await bcrypt.hash(password, 10)
     
     await User.create({ 
       name, 
       email, 
-      password: encryptedPassword
+      password: encryptedPassword,
+      role
     })
 
     res.status(201).json({
@@ -68,9 +69,16 @@ const signinUser = async (req, res) => {
         status: 'FAILED',
         message: 'Invalid credentials'
       })
-    } 
+    }
 
-    const token = jwt.sign({ a: 5 }, 'ILoveNodejs', { expiresIn: 30*60*1000 })
+    const userInfo = { 
+      name: user.name, 
+      email: user.email,
+      role: user.role
+    }
+    const token = jwt.sign(userInfo, process.env.JWT_SECRET_KEY, { 
+      expiresIn: 24*60*60 
+    })
 
     res.json({
       status: 'SUCCESS',
@@ -85,8 +93,26 @@ const signinUser = async (req, res) => {
   }
 }
 
+const getDashboard = async (req, res) => {
+  try {
+    const { name, email } = req.user
+
+    res.send(`
+      <h1>DASHBOARD PAGE</h1>
+      <h2>Welcome, ${name}!</h2>
+      <p>Your email is ${email}</p>
+    `)
+  } catch (error) {
+    res.status(500).json({
+      status: 'FAILED',
+      message: 'Something went wrong'
+    })
+  }
+}
+
 module.exports = {
   fetchUsers,
   signupUser,
-  signinUser
+  signinUser,
+  getDashboard
 }
